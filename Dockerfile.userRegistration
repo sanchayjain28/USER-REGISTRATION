@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy only dependency files first to leverage Docker cache
+COPY pyproject.toml ./
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN pip install --upgrade pip && \
+    pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-root
+
+# Copy the rest of the application
+COPY user_registration/ ./
+
+EXPOSE 8001
+
+CMD ["python3", "main.py"]
